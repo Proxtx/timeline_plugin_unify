@@ -1,5 +1,5 @@
 use { 
-    crate::plugin_manager::PluginData, leptos::{view, IntoView, View}, serde::{Deserialize, Serialize}, std::str::FromStr, url::Url
+    crate::plugin_manager::PluginData, leptos::{view, IntoView, View, logging}, serde::{Deserialize, Serialize}, std::str::FromStr, url::Url
 };
 
 pub struct Plugin {
@@ -25,6 +25,9 @@ impl crate::Plugin for Plugin {
         };
         url = url.join("actionCreator").unwrap();
         let src = format!("
+        window.run_{} = async () =>  {{
+          setTimeout(window.run_{}, 50);
+        }};
         import {{genModule, genCombine as genCombineIframe}} from \"/api/plugin/timeline_plugin_unify/combine.js\"
         if (!Element.prototype.enableCombine)
         Element.prototype.enableCombine = async function (module) {{
@@ -32,7 +35,7 @@ impl crate::Plugin for Plugin {
         while (!this.contentWindow?.postMessage) {{
           await new Promise((r) => setTimeout(r, 100));
         }}
-
+        window.run_{} = async () => {{
         let latestMessage;
         window.addEventListener(\"message\", (ev) => {{
           latestMessage = ev.data;
@@ -70,10 +73,17 @@ impl crate::Plugin for Plugin {
         do {{
       let dimensions = await iframe.combine.size();
       iframe.style.height = dimensions.height + \"px\";
-    }} while(await iframe.combine.resizeObserver() || true)", iframe_id, sanitize(&serde_json::to_string(&data.appName).unwrap()), sanitize(&serde_json::to_string(&data.method).unwrap()), sanitize(&serde_json::to_string(&data.arguments).unwrap()));
+    }} while(await iframe.combine.resizeObserver() || true) }}", iframe_id, iframe_id, iframe_id, iframe_id, sanitize(&serde_json::to_string(&data.appName).unwrap()), sanitize(&serde_json::to_string(&data.method).unwrap()), sanitize(&serde_json::to_string(&data.arguments).unwrap()));
+        logging::log!("{}", src);
         Ok(Box::new(move || -> View {
             view! {
-                <iframe id=iframe_id src=url.to_string() style:width="100%" style:border="none">
+                <iframe
+                    id=iframe_id
+                    src=url.to_string()
+                    style:width="100%"
+                    style:border="none"
+                    onload=format!("window.run_{}()", iframe_id)
+                >
                     Loading
                 </iframe>
                 <script type="module">{src}</script>
