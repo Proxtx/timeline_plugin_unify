@@ -35,12 +35,10 @@ impl crate::Plugin for Plugin {
         while (!this.contentWindow?.postMessage) {{
           await new Promise((r) => setTimeout(r, 100));
         }}
-        window.run_{} = async () => {{
         let latestMessage;
         window.addEventListener(\"message\", (ev) => {{
           latestMessage = ev.data;
         }});
-
         let msg = \"ping\" + Math.floor(Math.random() * 1000);
         while (
           !latestMessage ||
@@ -49,6 +47,8 @@ impl crate::Plugin for Plugin {
           this.contentWindow.postMessage(msg, \"*\");
           await new Promise((r) => setTimeout(r, 100));
         }}
+
+        delete this.combine;
 
         while (!this.combine)
           try {{
@@ -66,15 +66,16 @@ impl crate::Plugin for Plugin {
           }}
         return this.combine;
       }};
-      let iframe = await document.getElementById(\"{}\");
-      await iframe.enableCombine(\"interaction\");
+        window.run_{} = async () => {{
+          
+          let iframe = await document.getElementById(\"{}\");
+          await iframe.enableCombine(\"interaction\");
         let data = JSON.parse(\"{{\\\"appName\\\": {}, \\\"method\\\": {}, \\\"arguments\\\": {}}}\");
         iframe.combine.importAction(data);
         do {{
       let dimensions = await iframe.combine.size();
       iframe.style.height = dimensions.height + \"px\";
     }} while(await iframe.combine.resizeObserver() || true) }}", iframe_id, iframe_id, iframe_id, iframe_id, sanitize(&serde_json::to_string(&data.appName).unwrap()), sanitize(&serde_json::to_string(&data.method).unwrap()), sanitize(&serde_json::to_string(&data.arguments).unwrap()));
-        logging::log!("{}", src);
         Ok(Box::new(move || -> View {
             view! {
                 <iframe
