@@ -1,5 +1,5 @@
 use { 
-    crate::plugin_manager::PluginData, leptos::{view, IntoView, View, logging}, serde::{Deserialize, Serialize}, std::str::FromStr, url::Url
+    crate::plugin_manager::PluginData, leptos::{view, IntoView, View}, serde::{Deserialize, Serialize}, std::str::FromStr, url::Url
 };
 
 pub struct Plugin {
@@ -16,12 +16,12 @@ impl crate::Plugin for Plugin {
             }
     }
 
-    fn get_component(&self, data: crate::plugin_manager::PluginEventData) -> crate::event_manager::EventResult<Box<dyn FnOnce() -> leptos::View>> {
+    fn get_component(&self, data: crate::plugin_manager::PluginEventData) -> crate::plugin_manager::EventResult<Box<dyn FnOnce() -> leptos::View>> {
         let data = data.get_data::<UnifyRequest>()?;
         let iframe_id = rand::random::<u64>();
         let mut url = match Url::from_str(&data.unifyUrl) {
             Ok(v) => v,
-            Err(e) => return Err(crate::event_manager::EventError::FaultyInitData(format!("{}", e)))
+            Err(e) => return Err(crate::plugin_manager::EventError::FaultyInitData(format!("{}", e)))
         };
         url = url.join("actionCreator").unwrap();
         let src = format!("
